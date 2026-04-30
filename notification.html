@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="image/logo.png">
+    <title>Wercatalyst : Broadcast Center</title>
+    <style>
+        :root {
+            --bg: #f1f5f9; --card: #fff; --muted: #64748b;
+            --header-blue: #2563eb; --dark-slate: #1e293b;
+            --sidebar-width: 260px; --border: #cbd5e1;
+        }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { margin: 0; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background: #f8fafc; padding: 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+        .brand img { width: 40px; height: 40px; border-radius: 8px; }
+        .nav a { display: block; padding: 12px; border-radius: 8px; color: var(--muted); text-decoration: none; margin-bottom: 6px; font-size: 14px; transition: 0.3s; }
+        .nav a.active { background: #e2e8f0; color: #000; font-weight: 600; }
+        .nav a:hover:not(.active) { background: #f1f5f9; color: var(--header-blue); }
+
+        /* Main Content */
+        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { padding: 15px 25px; border-bottom: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: space-between; }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        
+        .content-area { flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; }
+        .notif-card { width: 100%; max-width: 500px; background: white; padding: 30px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); height: fit-content; }
+        
+        /* Form Styling */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--dark-slate); }
+        input[type="text"], textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; outline: none; font-size: 14px; transition: 0.2s; }
+        input:focus, textarea:focus { border-color: var(--header-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        /* Image Preview Box */
+        .preview-container { 
+            margin-top: 10px; 
+            width: 100%; 
+            height: 180px; 
+            border: 1px dashed var(--border); 
+            border-radius: 12px; 
+            display: none; /* Default hidden */
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden;
+            background: #f8fafc;
+        }
+        .preview-container img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Buttons & Stats */
+        .btn-send { width: 100%; background: var(--header-blue); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .btn-send:hover { background: #1d4ed8; }
+        .btn-send:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .stats-panel { width: 280px; background: #fff; border-left: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+        .stat-box { padding: 20px; border-radius: 12px; background: #f8fafc; border: 1px solid var(--border); text-align: center; }
+        .stat-box h3 { margin: 0; font-size: 28px; color: var(--header-blue); }
+        .stat-box p { margin: 5px 0 0; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand">
+            <img src="image/logo.png" alt="logo">
+            <div><strong>Wercatalyst</strong><br><small style="color:var(--muted)">Admin Panel</small></div>
+        </div>
+        <nav class="nav">
+            <a href="admindashboard.html">Dashboard</a>
+            <a href="rider_Bank.html">Rider Details</a>
+            <a href="notifications.html" class="active">Send Notification</a>
+            <a href="#" onclick="logout()" style="color:#ef4444; margin-top:40px; font-weight:bold;">Logout</a>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="topbar">
+            <h2 style="font-size:18px; margin:0;">Notification Hub</h2>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span id="server-status" style="font-size:12px; color:#16a34a; font-weight:bold;">● Firebase V1 Active</span>
+            </div>
+        </div>
+
+        <div class="main-container">
+            <div class="content-area">
+                <div class="notif-card">
+                    <h3 style="margin-top:0;">🚀 Send New Broadcast</h3>
+                    
+                    <div class="form-group">
+                        <label>Notification Title</label>
+                        <input type="text" id="title" placeholder="e.g. New Order Waiting!">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message Content</label>
+                        <textarea id="message" rows="4" placeholder="Describe the notification details..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Image URL (Optional)</label>
+                        <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg" oninput="updatePreview(this.value)">
+                        <div id="previewBox" class="preview-container">
+                            <img id="imgPreview" src="" alt="Preview">
+                        </div>
+                    </div>
+
+                    <button class="btn-send" id="sendBtn" onclick="sendBroadcast()">Broadcast Now</button>
+                    <p id="status-text" style="text-align:center; font-size:13px; margin-top:15px; font-weight:500;"></p>
+                </div>
+            </div>
+
+            <div class="stats-panel">
+                <h4 style="margin:0; font-size:14px; color:var(--dark-slate);">Live Performance</h4>
+                <div class="stat-box" style="border-bottom: 4px solid #16a34a;">
+                    <h3 id="stat-sent">0</h3>
+                    <p>Sent Successfully</p>
+                </div>
+                <div class="stat-box" style="border-bottom: 4px solid #f59e0b;">
+                    <h3 id="stat-failed">0</h3>
+                    <p>Failed Attempts</p>
+                </div>
+                <div style="font-size:11px; color:var(--muted); text-align:center;">
+                    Note: Stats reset on page refresh.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Real-time Preview Logic
+        function updatePreview(url) {
+            const previewBox = document.getElementById('previewBox');
+            const imgPreview = document.getElementById('imgPreview');
+            
+            if (url && url.startsWith('http')) {
+                imgPreview.src = url;
+                previewBox.style.display = 'flex';
+                
+                // If URL is broken, hide preview
+                imgPreview.onerror = () => {
+                    previewBox.style.display = 'none';
+                };
+            } else {
+                previewBox.style.display = 'none';
+            }
+        }
+
+        async function sendBroadcast() {
+            const title = document.getElementById('title').value.trim();
+            const message = document.getElementById('message').value.trim();
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            const btn = document.getElementById('sendBtn');
+            const status = document.getElementById('status-text');
+
+            if (!title || !message) {
+                alert("Bhai, Title aur Message dalna zaroori hai!");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Sending...';
+            status.innerText = "Connecting to Firebase...";
+            status.style.color = "#64748b";
+
+            try {
+                const response = await fetch('http://localhost:3000/api/send-notif', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: title,
+                        body: message,
+                        image: imageUrl 
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    status.innerText = "✅ Notification sent successfully!";
+                    status.style.color = "#16a34a";
+                    document.getElementById('stat-sent').innerText = parseInt(document.getElementById('stat-sent').innerText) + 1;
+                    resetForm();
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (err) {
+                status.innerText = "❌ Error: " + err.message;
+                status.style.color = "#ef4444";
+                document.getElementById('stat-failed').innerText = parseInt(document.getElementById('stat-failed').innerText) + 1;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Broadcast Now';
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('title').value = "";
+            document.getElementById('message').value = "";
+            document.getElementById('imageUrl').value = "";
+            document.getElementById('previewBox').style.display = 'none';
+        }
+
+        function logout() {
+            if (confirm("Kyun bhai, logout karna hai?")) {
+                sessionStorage.clear();
+                window.location.replace("index.html");
+            }
+        }
+    </script>
+</body>
+</html>
