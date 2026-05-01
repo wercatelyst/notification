@@ -7,7 +7,7 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ limit: '2mb', extended: true }));
 app.use(cors());
 
-const serviceAccount = require("./wercatalyst-panel/wercatelyst-6e4c14507f32.json");
+const serviceAccount = require("./wercatelyst-6e4c14507f32.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
